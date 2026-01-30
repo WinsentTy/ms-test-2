@@ -13,6 +13,8 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+      - uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -21,9 +23,9 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
       
-      - name: Clone Coding Agents (tools)
+      - name: Clone Coding Agents
         run: |
-          git clone https://github.com/Surmbruh/coding-agents.git /tmp/coding_agents
+          git clone https://github.com/WinsentTy/coding-agent.git /tmp/coding_agents
           cd /tmp/coding_agents
           poetry install --no-interaction
       
@@ -38,10 +40,10 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_MODEL: ${{ secrets.LLM_MODEL }}
-        working-directory: /tmp/coding_agents
         run: |
+          cd /tmp/coding_agents
           poetry run python -m code_agent.main \
-            --repo "${{ github.repository }}" \
+            --repo ${{ github.repository }} \
             --issue-id ${{ github.event.issue.number }}
   reviewer-agent:
     if: github.event_name == 'pull_request'
@@ -50,6 +52,10 @@ jobs:
       contents: read
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -58,9 +64,9 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
       
-      - name: Clone Coding Agents (tools)
+      - name: Clone Coding Agents
         run: |
-          git clone https://github.com/Surmbruh/coding-agents.git /tmp/coding_agents
+          git clone https://github.com/WinsentTy/coding-agent.git /tmp/coding_agents
           cd /tmp/coding_agents
           poetry install --no-interaction
       
@@ -72,7 +78,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-        working-directory: /tmp/coding_agents
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
         run: |
+          cd /tmp/coding_agents
           poetry run python -m reviewer_agent.main
-          
