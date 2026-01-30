@@ -1,0 +1,40 @@
+name: AI Code Agents
+
+on:
+  issues:
+    types: [opened, labeled]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  code-agent:
+    if: contains(github.event.issue.labels.*.name, 'agent')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - run: pip install poetry
+      
+      - run: |
+          git clone https://github.com/WinsentTy/coding-agent.git /tmp/agents
+          cd /tmp/agents && poetry install --no-interaction
+      
+      - run: |
+          git config --global user.name "AI Agent"
+          git config --global user.email "agent@example.com"
+      
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+        working-directory: /tmp/agents
+        run: |
+          poetry run python -m code_agent.main \
+            --repo "${{ github.repository }}" \
+            --issue-id ${{ github.event.issue.number }}
